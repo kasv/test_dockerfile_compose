@@ -1,0 +1,77 @@
+networks:
+  lan:
+    driver: bridge
+
+services:
+  project:
+    command: /opt/runfiles/run_project
+    container_name: project
+    depends_on:
+      - postgresql
+      - redis
+    domainname: local.dev.example.com
+    environment:
+      - LANG=en_US.UTF-8
+      - DB_NAME=project
+      - DB_USER=user
+      - DB_PASS=passw
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - WORKDIR=/opt/project
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+    hostname: project
+    image: docker.example.com/project
+    networks:
+      - lan
+    ports:
+      - 127.0.0.1:5018:5000
+    restart: always
+    tty: true
+    volumes:
+      - ./:/opt:ro
+      - ./logs:/var/logs
+
+  postgresql:
+    command: /opt/runfiles/run_postgresql
+    container_name: postgresql
+    image: docker.example.com/postgresql
+    networks:
+      - lan
+    ports:
+      - 127.0.0.1:3307:3306
+    restart: always
+    volumes:
+      - postgresql:/var/lib/postgresql:rw
+
+  redis:
+    command: /opt/runfiles/run_redis
+    container_name: redis
+    image: docker.example.com/redis
+    networks:
+      - lan
+    ports:
+      - 127.0.0.1:6380:6379
+    restart: always
+
+  nginx:
+    command: /opt/runfiles/run_nginx.sh
+    container_name: nginx
+    depends_on:
+      - project
+      - postgresql
+      - redis
+    external_links: []
+    image: docker.example.com/nginx
+    networks:
+      - lan
+    ports:
+      - ${HTTPPORT}:80
+      - ${HTTPSPORT}:443
+    restart: always
+    tty: true
+    volumes:
+      - ./:/www:consistent
+
+version: '1'
