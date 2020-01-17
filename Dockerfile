@@ -8,7 +8,6 @@ ENV GUNICORN_RELOAD False
 # Устанавливаем все зависомости на образа.
 RUN apk add --update --no-cache \
         tzdata \
-        git \
         g++ \
         libffi-dev \
     ln -fs /usr/share/zoneinfo/Europe/Moscow /etc/localtime
